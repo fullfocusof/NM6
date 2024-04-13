@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml.Linq;
 using ZedGraph;
 
 namespace LR6
@@ -33,10 +34,16 @@ namespace LR6
             myPane.YAxis.Title.Text = "Y";
 
             PointPairList pointPairList = new PointPairList();
+            for (float x = -10; x <= 10; x += 0.1f)
+            {
+                float y = f(x);
+                pointPairList.Add(x, y);
+            }
 
+            // Координаты узлов
             foreach (var node in parent.Data)
             {
-                pointPairList.Add(node.Item1, node.Item2);
+                //pointPairList.Add(node.Item1, node.Item2);
 
                 TextObj label = new TextObj($"({node.Item1}, {node.Item2})", node.Item1, node.Item2);
                 label.FontSpec.Size = 6;
@@ -45,26 +52,40 @@ namespace LR6
                 label.Location.AlignV = AlignV.Top;
                 myPane.GraphObjList.Add(label);
             }
+            TextObj labelTarget = new TextObj($"({parent.XTarget}, {parent.YTarget})", parent.XTarget, parent.YTarget);
+            labelTarget.FontSpec.Size = 6;
+            labelTarget.FontSpec.FontColor = Color.Black;
+            labelTarget.Location.AlignH = AlignH.Right;
+            labelTarget.Location.AlignV = AlignV.Top;
+            myPane.GraphObjList.Add(labelTarget);
 
+
+            // Красная вертикальная линия X* = 3.3
             LineObj line = new LineObj(Color.Red, parent.XTarget, 0, parent.XTarget, parent.YTarget);
             line.Line.Style = System.Drawing.Drawing2D.DashStyle.Dot;
             line.IsClippedToChartRect = true;
             myPane.GraphObjList.Add(line);
 
-            LineItem myCurve = myPane.AddCurve("Узлы", pointPairList, Color.Blue, SymbolType.Circle);
+            // Легенда функции
+            LineItem myCurve = myPane.AddCurve("y = 2.1sin(0.37x)", pointPairList, Color.Blue, SymbolType.Circle);
             myCurve.Symbol.Fill = new Fill(Color.Blue);
             myCurve.Line.IsVisible = true;
 
+            // Легенда X*
             PointPairList markerList = new PointPairList();
             markerList.Add(parent.XTarget, 0);
-
-            LineItem markerCurve = myPane.AddCurve("X*", markerList, Color.Red, SymbolType.XCross);
+            LineItem markerCurve = myPane.AddCurve("X* = 3.3", markerList, Color.Red, SymbolType.XCross);
             markerCurve.Symbol.Fill = new Fill(Color.Red);
             markerCurve.Line.IsVisible = false;
 
             zedGraphControl.Size = new Size(width, height);
 
             Controls.Add(zedGraphControl);
+        }
+
+        private float f(float x)
+        {
+            return (float)(2.1 * Math.Sin(0.37 * x));
         }
     }
 }
